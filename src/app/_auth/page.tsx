@@ -1,17 +1,39 @@
+"use client";
+import { useAuth } from "../_context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Loader from "@/components/Loader";
 
-export default function withAuth(Component: any) {
-  return function Auth(props: any) {
+const withAuth = (Component: React.ComponentType) => {
+  const AuthenticatedComponent = () => {
+    const { user } = useAuth();
     const router = useRouter();
+    const [loading, setLoading] = useState(true);
+
     useEffect(() => {
+      // Check localStorage directly for authentication
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
       const token = localStorage.getItem("token");
-      const user = localStorage.getItem("userId");
-      const isLoggedIn = localStorage.getItem("isLoggedIn");
-      if (!token || !user || !isLoggedIn) {
-        router.push("/");
+
+      if (!isLoggedIn || !token) {
+        // Not authenticated according to localStorage, redirect
+        router.replace("/");
+      } else {
+        // User is authenticated according to localStorage
+        setLoading(false);
       }
     }, [router]);
-    return <Component {...props} />;
+
+    // Show loading state while checking authentication
+    if (loading) {
+      return <Loader />;
+    }
+
+    // Only render the protected component if user is authenticated
+    return <Component />;
   };
-}
+
+  return AuthenticatedComponent;
+};
+
+export default withAuth;

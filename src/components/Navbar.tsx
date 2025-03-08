@@ -2,13 +2,17 @@
 
 import { useAuth } from "@/app/_context/AuthContext";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Navbar() {
   const [isHovered, setIsHovered] = useState(false);
-  const { googleSignIn, logOut, user } = useAuth();
-  const { loggedIn, photoUrl } = user;
+  const { logOut } = useAuth();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [photoUrl, setPhotoUrl] = useState("");
   const [name, setName] = useState("");
+  const router = useRouter();
+
   const handleMouseEnter = (
     event: React.MouseEvent<HTMLDivElement, MouseEvent>
   ) => {
@@ -20,15 +24,47 @@ export default function Navbar() {
   ) => {
     setIsHovered(false);
   };
+
+  // Load authentication state from localStorage
   useEffect(() => {
-    const name = String(localStorage.getItem("name"));
-    setName(name);
+    // Check if we're in the browser
+    if (typeof window !== "undefined") {
+      const storedName = localStorage.getItem("name") || "";
+      const storedPhotoUrl = localStorage.getItem("photoUrl") || "/bghom.jpg";
+      const storedLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+      setName(storedName);
+      setPhotoUrl(storedPhotoUrl);
+      setIsLoggedIn(storedLoggedIn);
+    }
   }, []);
 
-  let userPhotoUrl = photoUrl;
-  if (photoUrl === "") {
-    userPhotoUrl = "/bghom.jpg";
-  }
+  // Handle navigation with localStorage check
+  const handleNavigation = (path: string) => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    const token = localStorage.getItem("token");
+
+    if (
+      (path === "/home" || path === "/dashboard") &&
+      (!isLoggedIn || !token)
+    ) {
+      // Redirect to login if trying to access protected routes without auth
+      router.push("/");
+    } else {
+      router.push(path);
+    }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    console.log("logging out from navbar");
+    localStorage.clear();
+    setIsLoggedIn(false);
+    setName("");
+    setPhotoUrl("/bghom.jpg");
+    logOut();
+    router.push("/");
+  };
 
   return (
     <nav className="bg-white">
@@ -36,7 +72,10 @@ export default function Navbar() {
         className={`flex shadow-md w-full mx-auto px-2 sm:px-8 h-20 relative justify-between items-center`}
       >
         <div className="inline-flex">
-          <a className="_o6689fn" href="/home">
+          <div
+            className="_o6689fn cursor-pointer"
+            onClick={() => handleNavigation("/home")}
+          >
             <div className="flex">
               <Image
                 src="/navlogo.png"
@@ -45,7 +84,7 @@ export default function Navbar() {
                 height={100}
               ></Image>
             </div>
-          </a>
+          </div>
         </div>
         <div className="hidden sm:block flex-shrink flex-grow-0 justify-start px-2">
           <div className="inline-block">
@@ -54,16 +93,16 @@ export default function Navbar() {
         </div>
         <div className="flex-initial">
           <div className="flex justify-end items-center relative">
-            {!loggedIn && user.name && (
+            {!isLoggedIn && (
               <div className="hidden sm:flex mr-4 gap-x-2 items-center">
                 <button
-                  onClick={googleSignIn}
+                  onClick={() => handleNavigation("/")}
                   className="bg-indigo-600 rounded-md text-white w-fit px-3 py-1"
                 >
                   Login
                 </button>
                 <button
-                  onClick={googleSignIn}
+                  onClick={() => handleNavigation("/")}
                   className="bg-indigo-600 rounded-md text-white w-fit px-3 py-1"
                 >
                   Signup
@@ -107,29 +146,26 @@ export default function Navbar() {
                       } text-gray-700 z-40 pt-1`}
                     >
                       <li className="">
-                        <a
-                          className="rounded-t hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap"
-                          href="/home"
+                        <div
+                          className="rounded-t hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap cursor-pointer"
+                          onClick={() => handleNavigation("/home")}
                         >
                           Home
-                        </a>
+                        </div>
                       </li>
                       <li className="">
-                        <a
-                          className=" hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap"
-                          href="/dashboard"
+                        <div
+                          className="hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap cursor-pointer"
+                          onClick={() => handleNavigation("/dashboard")}
                         >
                           Dashboard
-                        </a>
+                        </div>
                       </li>
-                      {loggedIn ? (
+                      {isLoggedIn ? (
                         <li className="">
                           <button
-                            className="rounded-b text-left px-4 w-full  hover:bg-black hover:text-white py-2 block whitespace-no-wrap"
-                            onClick={() => {
-                              console.log("logging out from navbar");
-                              logOut();
-                            }}
+                            className="rounded-b text-left px-4 w-full hover:bg-black hover:text-white py-2 block whitespace-no-wrap"
+                            onClick={handleLogout}
                           >
                             Logout
                           </button>
@@ -137,27 +173,27 @@ export default function Navbar() {
                       ) : (
                         <>
                           <li className="">
-                            <a
-                              className="hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap"
-                              href="/"
+                            <div
+                              className="hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap cursor-pointer"
+                              onClick={() => handleNavigation("/")}
                             >
                               Sign In
-                            </a>
+                            </div>
                           </li>
                           <li className="">
-                            <a
-                              className="rounded-b  hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap"
-                              href="/"
+                            <div
+                              className="rounded-b hover:bg-black hover:text-white py-2 px-4 block whitespace-no-wrap cursor-pointer"
+                              onClick={() => handleNavigation("/")}
                             >
                               Sign Up
-                            </a>
+                            </div>
                           </li>
                         </>
                       )}
                     </ul>
                   </div>
                   <div className="block flex-grow-0 flex-shrink-0 h-10 sm:h-8 sm:w-fit pl-5 sm:pl-2">
-                    {loggedIn === false ? (
+                    {!isLoggedIn ? (
                       <svg
                         viewBox="0 0 32 32"
                         xmlns="http://www.w3.org/2000/svg"
@@ -177,7 +213,7 @@ export default function Navbar() {
                       <div className="flex w-full h-full items-center gap-x-2">
                         <p className="text-sm my-auto">Hello, {name}</p>
                         <Image
-                          src={userPhotoUrl}
+                          src={photoUrl}
                           alt={name || ""}
                           width={100}
                           height={100}

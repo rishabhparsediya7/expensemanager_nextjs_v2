@@ -136,11 +136,8 @@ const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({
         localStorage.setItem("userId", userId);
         localStorage.setItem("token", token);
         localStorage.setItem("isLoggedIn", true.toString());
-        localStorage.setItem(
-          "name",
-          result?.user?.first_name + " " + result?.user?.last_name
-        );
-        localStorage.setItem("photoUrl", result?.user?.profile_picture || "");
+        localStorage.setItem("name", result?.name);
+        localStorage.setItem("photoUrl", result?.photoUrl || "");
         setUser({
           userId: result?.userId || "",
           name: result?.name || "",
@@ -219,45 +216,61 @@ const AuthContextProvider: React.FC<{ children: React.ReactNode }> = ({
     router.push("/");
   }, []);
 
-  useEffect(() => {
-    const userId = localStorage.getItem("userId");
-    const getUser = async () => {
-      const token = localStorage.getItem("token");
-      const isLoggedIn = localStorage.getItem("isLoggedIn");
-      try {
-        setLoading(true);
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`
-        );
-        const result = await response.json();
-        if (result.success) {
-          localStorage.setItem(
-            "name",
-            result?.user?.first_name + " " + result?.user?.last_name
-          );
-          setUser({
-            name: result?.user?.first_name + " " + result?.user?.last_name,
-            photoUrl: result?.user?.profile_picture || "",
-            userId: result?.userId,
-            loggedIn: isLoggedIn === "true",
-            token: token || "",
-          });
-        } else {
-          throw new Error("Could not get user!");
-        }
-      } catch (error) {
-        console.log("🚀 ~ getUser ~ error:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  // useEffect(() => {
+  //   const userId = localStorage.getItem("userId");
+  //   console.log("🚀 ~ useEffect ~ userId:", userId);
+  //   const token = localStorage.getItem("token");
+  //   const isLoggedIn = localStorage.getItem("isLoggedIn");
 
-    if (!userId) {
-      return;
-    } else {
-      getUser();
-    }
-  }, []);
+  //   const getUser = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch(
+  //         `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`
+  //       );
+  //       const result = await response.json();
+  //       if (result.success) {
+  //         localStorage.setItem("name", result?.user?.name);
+  //         setUser({
+  //           name: result?.user?.name,
+  //           photoUrl: result?.user?.profile_picture || "",
+  //           userId: result?.userId,
+  //           loggedIn: isLoggedIn === "true",
+  //           token: token || "",
+  //         });
+  //       } else {
+  //         throw new Error("Could not get user!");
+  //       }
+  //     } catch (error) {
+  //       console.log("🚀 ~ getUser ~ error:", error);
+  //       setUser({
+  //         name: "",
+  //         photoUrl: "",
+  //         userId: "",
+  //         loggedIn: false,
+  //         token: "",
+  //       });
+  //     } finally {
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   // Set initial loading state
+  //   setLoading(true);
+
+  //   if (!userId || !token || isLoggedIn !== "true") {
+  //     setUser({
+  //       name: "",
+  //       photoUrl: "",
+  //       userId: "",
+  //       loggedIn: false,
+  //       token: "",
+  //     });
+  //     setLoading(false);
+  //   } else {
+  //     getUser();
+  //   }
+  // }, []);
 
   return (
     <AuthContext.Provider
