@@ -47,6 +47,7 @@ export function getMonthDates() {
   }
   return dateArray;
 }
+
 export function getDatesInCurrentMonthWithTimes(
   startTime = "00:00:00",
   endTime = "18:30:00"
@@ -74,3 +75,28 @@ export function getDatesInCurrentMonthWithTimes(
     return date.replace("T13:00:00.000Z", "T00:00:00.000Z");
   });
 }
+
+export const getDateRanges = () => {
+  const today = new Date();
+
+  const firstDayOfWeek = new Date(today);
+  const dayOfWeek = today.getDay();
+
+  firstDayOfWeek.setDate(
+    today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1)
+  );
+
+  const lastDayOfWeek = new Date(firstDayOfWeek);
+  lastDayOfWeek.setDate(firstDayOfWeek.getDate() + 6); // Move to Sunday
+
+  // First and last day of the month
+  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  const lastDayOfMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0); // Correct last day
+
+  return {
+    firstDayOfWeek: firstDayOfWeek.toLocaleDateString("en-CA"), // YYYY-MM-DD
+    lastDayOfWeek: lastDayOfWeek.toLocaleDateString("en-CA"),
+    firstDayOfMonth: firstDayOfMonth.toLocaleDateString("en-CA"),
+    lastDayOfMonth: lastDayOfMonth.toLocaleDateString("en-CA"),
+  };
+};
