@@ -12,6 +12,8 @@ const AuthPage = () => {
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [otpSigninLoading, setOtpSigninLoading] = useState(false);
+
   const router = useRouter();
   const {
     googleSignIn,
@@ -24,11 +26,6 @@ const AuthPage = () => {
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
-  };
-
-  const handleSendOTP = (e: any) => {
-    e.preventDefault();
-    setOtpSent(true);
   };
 
   const handleGoogleSignIn = (e: any) => {
@@ -52,6 +49,28 @@ const AuthPage = () => {
     } catch (error) {
       console.log("🚀 ~ handleSignUp ~ error:", error);
     } finally {
+    }
+  };
+
+  const handleSendOTP = async () => {
+    setOtpSigninLoading(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/send-otp`,
+        {
+          method: "POST",
+          body: JSON.stringify({ email }),
+          headers: {
+            "content-type": "application/json",
+          },
+        }
+      );
+      const result = await response.json();
+      console.log("🚀 ~ signInWithOTP ~ result:", result);
+    } catch (error) {
+      console.log("🚀 ~ signInWithOTP ~ error:", error);
+    } finally {
+      setOtpSigninLoading(false);
     }
   };
 
@@ -221,9 +240,13 @@ const AuthPage = () => {
                     {!otpSent ? (
                       <button
                         onClick={handleSendOTP}
-                        className="w-full bg-black text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
+                        className="w-full bg-black flex items-center justify-center text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200"
                       >
-                        Send OTP
+                        {otpSigninLoading ? (
+                          <div className="animate-spin rounded-full h-8 w-8 border-2  border-white border-t-transparent"></div>
+                        ) : (
+                          "Send OTP"
+                        )}
                       </button>
                     ) : (
                       <div className="space-y-2">
